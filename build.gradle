@@ -1,0 +1,193 @@
+def langs = ['java']
+langs.each {
+    apply plugin : it
+}
+apply plugin : 'idea'
+
+apply plugin : 'war'
+
+group = 'org.mikeneck.gae.slim3.sample'
+version = '0.0.1.1-SNAPSHOT-1'
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+def appengineGroupId = 'com.google.appengine'
+def appengineVersion = '1.6.2'
+def slim3Version = '1.0.15'
+
+def applicationId = 'guestbook-id'
+def applicationVersion = '1'
+
+buildscript {
+    repositories {
+        maven {
+            url 'https://www.seasar.org/maven/maven2'
+        }
+    }
+    dependencies {
+       classpath : "org.slim3:slim3:1.0.15".toString()
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://www.seasar.org/maven/maven2'
+    }
+}
+
+configurations {
+    genModels
+}
+
+
+def encoding = { it.encoding = 'UTF-8'}
+
+def makeStructure = {
+    def dir = []
+    sourceSets.each { src ->
+        langs.each { lang ->
+            dir << "src/${src.name}/${lang}"
+            dir << "src/${src.name}/${lang}/${project.properties.group.replace('.','/')}"
+        }
+        dir << "src/${src.name}/resources"
+    }
+    dir << project.properties.webAppDirName
+    dir << "${project.properties.webAppDirName}/WEB-INF"
+    dir.each {
+        if (new File(it).exists() == false) {
+            ant.echo it
+            ant.mkdir(dir : it)
+        }
+    }
+}
+
+def webXml = {
+    def webDesc = "${project.properties.webAppDirName}/WEB-INF/web.xml"
+    if ( new File(webDesc).exists() == false ) {
+        def writer = new StringWriter()
+        writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
+        def xml = new groovy.xml.MarkupBuilder(writer)
+        xml."web-app" (xmlns : 'http://java.sun.com/xml/ns/javaee',
+            "xml:xsi" : 'http://www.w3.org/2001/XMLSchema-instance',
+            "xml:schemaLocation" : 'http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd',
+            version : 2.5, '')
+        new File(webDesc).write(writer.toString(), 'UTF-8')
+    }
+}
+
+def appenginXml = {
+    def path = "${project.properties.webAppDirName}/WEB-INF/appengine-web.xml"
+    if (new File(path).exists() == false) {
+        def writer = new StringWriter()
+        def xml = new groovy.xml.MarkupBuilder(writer)
+        xml.'appengine-web-app' (xmlns : 'http://appengine.google.com/ns/1.0') {
+            application (applicationId)
+            version_________ (applicationVersion)
+            'system-properties' {
+                property (name : 'java.util.logging.config.file', value : 'WEB-INF/logging.properties')
+            }
+        }
+        new File(path).write(writer.toString().replace('________', ''), 'UTF-8')
+    }
+}
+
+def prepare_gen = {
+    def genDir = '.apt_gen'
+    if (new File(genDir).exists() == false)
+        ant.mkdir(dir: genDir)
+}
+
+def apt_gen = {
+    def genDir = '.apt_gen'
+    ant {
+        apt (srcdir : 'src/main/java',
+                destdir : genDir,
+                classpath : configurations.genModels.asPath,
+                debug : 'on',
+                compile : true)
+    }
+}
+
+
+tasks.ideaModule {
+    doFirst makeStructure
+    doLast webXml
+    doLast appenginXml
+}
+
+idea.project.ipr {
+    withXml { provider ->
+        def map = provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping
+        map.@vcs = 'Git'
+        map.@directory = project.properties.projectDir
+
+    }
+}
+
+tasks.withType (AbstractCompile).each {
+    encoding it.options
+}
+
+dependencies {
+    compile "${appengineGroupId}:appengine-tools-sdk:${appengineVersion}".toString()
+    compile "${appengineGroupId}:appengine-api-labs:${appengineVersion}".toString()
+    compile "${appengineGroupId}:appengine-api-1.0-sdk:${appengineVersion}".toString()
+    compile("org.slim3:slim3:${slim3Version}".toString()) {
+        exclude module: "${appengineGroupId}:appengine-api-1.0-sdk".toString()
+        exclude module: "${appengineGroupId}:appengine-api-labs".toString()
+    }
+    compile 'org.apache.geronimo.specs:geronimo-servlet_2.5_spec:1.2'
+    compile("org.slim3:slim3-gen:${slim3Version}".toString()) {
+        exclude module: 'org.apache.ant:ant'
+    }
+    prepare_gen()
+    compile files ('.apt_gen')
+    genModels "org.slim3:slim3:${slim3Version}".toString()
+    genModels "org.slim3:slim3-gen:${slim3Version}".toString()
+    testCompile "${appengineGroupId}:appengine-api-stubs:${appengineVersion}".toString()
+    testCompile "${appengineGroupId}:appengine-api-stubs:${appengineVersion}".toString()
+    testCompile "${appengineGroupId}:appengine-local-runtime:1.3.6".toString()
+    testCompile "${appengineGroupId}:appengine-testing:${appengineVersion}".toString()
+    testCompile('junit:junit-dep:4.10') {
+        exclude module: 'org.hamcrest:hamcrest-core'
+    }
+    testCompile 'org.hamcrest:hamcrest-library:1.2.1'
+}
+
+task gen << prepare_gen
+gen << apt_gen
+
+task gitignore << {
+    def pName = project.properties.group.tokenize('.')[0]
+    def extra = "!src/*/*/${pName}"
+    ant.echo ('preparing .gitignore file')
+    def gitignoreFile = $/
+# for java
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# for idea
+*.iml
+*.ipr
+*.iws
+.idea/
+out/
+
+# dor gradle
+.gradle
+target/
+
+# for git
+.gitignore
+
+# for project
+/$
+    def contents = "${gitignoreFile}${pName}/\n${pName}\n${extra}"
+    new File('.gitignore').write(contents, 'UTF-8')
+}
+

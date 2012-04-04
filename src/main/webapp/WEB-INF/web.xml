@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns='http://java.sun.com/xml/ns/javaee' xml:xsi='http://www.w3.org/2001/XMLSchema-instance' xml:schemaLocation='http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd' version='2.5'>
+    <servlet>
+        <servlet-name>guestbook</servlet-name>
+        <servlet-class>org.mikeneck.gae.slim3.sample.GuestBookServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>guestbook</servlet-name>
+        <url-pattern>/guestbook</url-pattern>
+    </servlet-mapping>
+</web-app>
