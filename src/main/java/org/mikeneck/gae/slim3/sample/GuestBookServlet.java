@@ -80,7 +80,7 @@ public class GuestBookServlet extends HttpServlet {
         service.put(entity);
     }
 
-    private Iterable<Entity> getData() {
+    static Iterable<Entity> getData() {
         Query query = new Query("Guestbook");
         query.addSort("createdAt", Query.SortDirection.DESCENDING);
 

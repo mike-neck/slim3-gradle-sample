@@ -1,15 +1,20 @@
 package org.mikeneck.gae.slim3.sample;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.slim3.tester.AppEngineTestCase;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Created with IntelliJ IDEA.
@@ -41,5 +46,40 @@ public class GuestbookServletTest extends AppEngineTestCase {
         int after = service.prepare(query).countEntities(FETCH_OPTIONS);
 
         assertThat(after, is(before + 1));
+    }
+
+    @Test
+    public void testQueryFromDatastore () {
+        Calendar calendar = Calendar.getInstance();
+        for (int i = 1; i < 5 + 1; i += 1) {
+            Entity entity = new Entity("Guestbook");
+            entity.setProperty("message", "test" + i);
+            entity.setProperty("createdAt", calendar.getTime());
+            service.put(entity);
+            calendar.add(Calendar.DATE, -1);
+        }
+
+        Query query = new Query("Guestbook");
+        List<Entity> list = service.prepare(query).asList(FETCH_OPTIONS);
+        assertThat(list.size(), is(5));
+
+        Date before = null;
+        Iterable<Entity> data = GuestBookServlet.getData();
+        List<Entity> entities = setList(data);
+        assertThat(entities.size(), is(5));
+        for (Entity entity : entities) {
+            Date createdAt = (Date) entity.getProperty("createdAt");
+            if (before != null) {
+                assertThat(createdAt.compareTo(before), is(greaterThan(0)));
+            }
+        }
+    }
+
+    List<Entity> setList(Iterable<Entity> iterable) {
+        List<Entity> list = new ArrayList<Entity>(5);
+        for (Entity entity : iterable) {
+            list.add(entity);
+        }
+        return list;
     }
 }
