@@ -14,12 +14,15 @@ public class ControllerTestRule implements TestRule {
     private Class<?> testClass;
 
     private ControllerTester tester;
+    private String methodName;
 
     /**
-     * {@inheritDoc}
+     * prepare {@code ControllerTester}.
+     * and fetch method name.
      */
     @Override
     public Statement apply(Statement base, Description description) {
+        methodName = description.getMethodName();
         testClass = description.getTestClass();
         tester = new ControllerTester(testClass);
         return statement(base);
@@ -76,5 +79,9 @@ public class ControllerTestRule implements TestRule {
      */
     public ControllerTester getTester() {
         return tester;
+    }
+
+    public String getMethodName() {
+        return methodName;
     }
 }
