@@ -1,8 +1,10 @@
 package org.mikeneck.gae.slim3.sample.controller;
 
+import org.mikeneck.gae.slim3.sample.service.GuestbookService;
 import org.slim3.controller.Controller;
 import org.slim3.controller.Navigation;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
@@ -16,6 +18,20 @@ public class GuestbookController extends Controller {
 
     @Override
     protected Navigation run() throws Exception {
+        if (isGet()) {
+            return doGet();
+        } else {
+            return doPost();
+        }
+    }
+
+    private Navigation doPost() {
+        String message = asString("message");
+        GuestbookService.saveToDatastore(message);
+        return redirect("/guestbook");
+    }
+
+    private Navigation doGet() throws IOException {
         response.setContentType(TYPE);
         response.setCharacterEncoding(UTF_8);
 
