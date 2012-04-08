@@ -1,0 +1,53 @@
+h1. slim3-gradle-sample
+
+*slim3-gradle-sample* is a sample and test project using "slim3-gradle":https://github.com/mike-neck/slim3-gradle as build tool.
+If you are wondering a usage of slim3-gradle, see this project and make clone of this.
+
+h1. LICENSE
+
+<pre><code class="txt">   Copyright mike_neck (mike@mikeneck.org) 2012
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+</code></pre>
+
+h1. code example
+
+The codes in this project are originally written by "shin1ogawa":https://github.com/shin1ogawa in his elegant work "Google API Expertが解説する Google App Engine for Java実践ガイド":http://goo.gl/137Tm with some modification.
+The original codes are available at https://bitbucket.org/shin1ogawa/gae4j_pragmatice_guide or http://www.impressjapan.jp/books/3173 __ibid__ page 2.
+
+h1. how to make project
+
+h3. Overview
+
+This project requires 3 steps to be available for IntelliJ IDEA.
+
+# create idea project model file (.ipr file)
+# generate gitignore file.
+# generate Meta class.
+
+h3. Detail
+
+# create idea project model file
+<pre><code class="sh"> $ gradle idea
+</code></pre>
+** After this command you can find <code>project.ipr</code> file in project root.
+** And IntelliJ IDEA now can read the project.
+# generate gitignore file.
+<pre><code class="sh"> $ gradle gitignore
+</code></pre>
+** The you can manage your project under git.
+# generate Meta class.
+<pre><code class="sh"> $ gradle gen
+</code></pre>
+** Then you can find Meta classes generated under the .apt_gen directory.
+
