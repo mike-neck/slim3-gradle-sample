@@ -33,4 +33,8 @@ public class AppengineResource extends ExternalResource {
     protected void before() throws Throwable {
         tester.setUp();
     }
+
+    public AppEngineTester getTester() {
+        return tester;
+    }
 }

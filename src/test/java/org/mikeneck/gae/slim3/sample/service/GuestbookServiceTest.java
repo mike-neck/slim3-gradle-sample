@@ -3,9 +3,13 @@ package org.mikeneck.gae.slim3.sample.service;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.repackaged.com.google.common.base.Flag;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExternalResource;
+import org.mikeneck.gae.slim3.sample.util.AppengineResource;
 import org.slim3.datastore.Datastore;
 import org.slim3.tester.AppEngineTestCase;
+import org.slim3.tester.AppEngineTester;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -23,12 +27,16 @@ import static org.junit.Assert.assertThat;
  * Time: 15:51
  * To change this template use File | Settings | File Templates.
  */
-public class GuestbookServiceTest extends AppEngineTestCase {
+public class GuestbookServiceTest {
+
+    @Rule
+    public static AppengineResource resource = new AppengineResource();
 
     private static final String GUEST_BOOK = "Guestbook";
 
     @Test
     public void saveToDatastore () {
+        AppEngineTester tester = resource.getTester();
         int before = tester.count(GUEST_BOOK);
         GuestbookService.saveToDatastore("test");
         int after = tester.count(GUEST_BOOK);
