@@ -1,11 +1,13 @@
 package org.mikeneck.gae.slim3.sample.controller;
 
+import com.google.appengine.api.datastore.Entity;
 import org.mikeneck.gae.slim3.sample.service.GuestbookService;
 import org.slim3.controller.Controller;
 import org.slim3.controller.Navigation;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
 /**
  * @author: mike
@@ -51,8 +53,19 @@ public class GuestbookController extends Controller {
                 .println(writer, "<input type='submit'/>")
                 .println(writer, "</p>")
                 .println(writer, "</form>")
-                .println(writer, "</div>")
-                .println(writer, "</body>")
+                .println(writer, "</div>");
+        List<Entity> entities = GuestbookService.queryFromDatastore();
+        for (Entity entity : entities) {
+            StringBuffer buffer = new StringBuffer("<li>");
+            String line = buffer.append(entity.getProperty("message"))
+                    .append(" ( ")
+                    .append(entity.getProperty("createdAt"))
+                    .append(" ) ")
+                    .append("</li>")
+                    .toString();
+            println(writer, line);
+        }
+        println(writer, "</body>")
                 .println(writer, "</html>");
         response.flushBuffer();
         return null;
